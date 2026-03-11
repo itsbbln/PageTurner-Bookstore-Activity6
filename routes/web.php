@@ -1,0 +1,107 @@
+<?php
+use App\Http\Controllers\BookController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\TwoFactorController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Route;
+
+// Public routes
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Book browsing (public)
+Route::get('/books', [BookController::class, 'index'])->name('books.index');
+Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');
+
+// Category browsing (public)
+Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+Route::get('/categories/{category}', [CategoryController::class,
+'show'])->name('categories.show');
+
+// Shopping cart routes (public)
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart/{book}', [CartController::class, 'add'])->name('cart.add');
+Route::patch('/cart/{book}', [CartController::class, 'update'])->name('cart.update');
+Route::delete('/cart/{book}', [CartController::class, 'remove'])->name('cart.remove');
+Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
+Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
+
+// Authenticated routes (customers)
+Route::middleware(['auth', 'verified', 'twofactor'])->group(function () {
+
+    // Customer dashboard
+    Route::get('/dashboard', [DashboardController::class, 'customer'])
+        ->name('dashboard');
+
+    // Profile routes (from Breeze)
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Review routes
+    Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])
+        ->name('reviews.store');
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])
+        ->name('reviews.destroy');
+
+    // Order routes
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+});
+
+// Two-factor authentication routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/two-factor/settings', [TwoFactorController::class, 'settings'])
+        ->name('two-factor.settings');
+    Route::post('/two-factor/enable', [TwoFactorController::class, 'enable'])
+        ->name('two-factor.enable');
+    Route::delete('/two-factor/disable', [TwoFactorController::class, 'disable'])
+        ->name('two-factor.disable');
+
+    Route::get('/two-factor/challenge', [TwoFactorController::class, 'showChallenge'])
+        ->middleware('throttle:6,1')
+        ->name('two-factor.challenge');
+    Route::post('/two-factor/challenge', [TwoFactorController::class, 'verify'])
+        ->middleware('throttle:6,1')
+        ->name('two-factor.verify');
+    Route::post('/two-factor/resend', [TwoFactorController::class, 'resend'])
+        ->middleware('throttle:6,1')
+        ->name('two-factor.resend');
+});
+
+// Admin-only routes (Category & Book management, Admin dashboard)
+Route::middleware(['auth','is_admin','verified','twofactor'])->prefix('admin')->name('admin.')->group(function () {
+
+// Admin dashboard
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+// Category management
+Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
+Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+Route::get('/categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
+Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
+// Book management
+Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
+Route::post('/books', [BookController::class, 'store'])->name('books.store');
+Route::get('/books/{book}/edit', [BookController::class, 'edit'])->name('books.edit');
+Route::put('/books/{book}', [BookController::class, 'update'])->name('books.update');
+Route::delete('/books/{book}', [BookController::class, 'destroy'])->name('books.destroy');
+
+// Order management
+Route::get('/orders', [OrderController::class, 'adminIndex'])->name('orders.index');
+Route::put('/orders/{order}/status', [OrderController::class, 'update'])->name('orders.update');
+
+// User management (optional)
+Route::get('/users', [UserController::class, 'index'])->name('users.index');
+});
+// Logout
+Route::post('/logout', [ProfileController::class, 'logout'])->name('logout');
+require __DIR__.'/auth.php';

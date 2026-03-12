@@ -17,6 +17,17 @@ class RedirectIfAuthenticated
      */
     public function handle(Request $request, Closure $next, string ...$guards): Response
     {
+        // Allow password reset / forgot password routes even if authenticated.
+        // Otherwise, clicking the reset link while logged in redirects to HOME.
+        if ($request->route()?->named([
+            'password.request',
+            'password.email',
+            'password.reset',
+            'password.store',
+        ])) {
+            return $next($request);
+        }
+
         $guards = empty($guards) ? [null] : $guards;
 
         foreach ($guards as $guard) {

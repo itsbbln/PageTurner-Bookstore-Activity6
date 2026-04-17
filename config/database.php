@@ -46,6 +46,14 @@ return [
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DATABASE_URL'),
+            // Optional advanced feature: read/write splitting.
+            'read' => [
+                'host' => array_filter(array_map('trim', explode(',', (string) env('DB_READ_HOSTS', env('DB_HOST', '127.0.0.1'))))),
+            ],
+            'write' => [
+                'host' => array_filter(array_map('trim', explode(',', (string) env('DB_WRITE_HOSTS', env('DB_HOST', '127.0.0.1'))))),
+            ],
+            'sticky' => env('DB_STICKY', true),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DATABASE', 'forge'),

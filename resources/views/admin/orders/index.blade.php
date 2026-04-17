@@ -16,6 +16,42 @@
                 @endif
 
                 @if ($orders->count() > 0)
+                    <div class="mb-4 p-4 rounded-lg bg-gray-50 border border-gray-200">
+                        <h2 class="text-sm font-semibold text-gray-900 mb-3">Order Export Module</h2>
+                        <form method="POST" action="{{ route('admin.orders.export') }}" class="grid grid-cols-1 md:grid-cols-6 gap-3 mb-3">
+                            @csrf
+                            <select name="format" class="border rounded px-2 py-1 text-sm">
+                                <option value="xlsx">XLSX</option>
+                                <option value="csv">CSV</option>
+                                <option value="pdf">PDF</option>
+                            </select>
+                            <select name="status" class="border rounded px-2 py-1 text-sm">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="processing">Processing</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            <input type="date" name="date_from" class="border rounded px-2 py-1 text-sm" />
+                            <input type="date" name="date_to" class="border rounded px-2 py-1 text-sm" />
+                            <input type="number" name="customer_id" placeholder="Customer ID" class="border rounded px-2 py-1 text-sm" />
+                            <button type="submit" class="bg-indigo-600 text-white rounded px-3 py-1 text-sm">Export Orders</button>
+                        </form>
+
+                        <form method="POST" action="{{ route('admin.orders.export.financial') }}" class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                            @csrf
+                            <select name="format" class="border rounded px-2 py-1 text-sm">
+                                <option value="xlsx">XLSX</option>
+                                <option value="csv">CSV</option>
+                                <option value="pdf">PDF</option>
+                            </select>
+                            <input type="date" name="date_from" class="border rounded px-2 py-1 text-sm" />
+                            <input type="date" name="date_to" class="border rounded px-2 py-1 text-sm" />
+                            <input type="number" step="0.01" min="0" max="1" name="tax_rate" placeholder="Tax rate e.g. 0.12" class="border rounded px-2 py-1 text-sm" />
+                            <button type="submit" class="bg-green-600 text-white rounded px-3 py-1 text-sm">Export Financial Report</button>
+                        </form>
+                    </div>
+
                     {{-- Page size selector --}}
                     <div class="flex justify-end mb-4">
                         <form method="GET" action="{{ route('admin.orders.index') }}" class="flex items-center gap-2 text-sm">

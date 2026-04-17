@@ -9,7 +9,11 @@ use App\Models\User;
 use App\Notifications\NewOrderCreatedNotification;
 use App\Notifications\OrderPlacedNotification;
 use App\Notifications\OrderStatusUpdatedNotification;
+use App\Exports\CustomerOrdersExport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Excel as ExcelFormat;
+use Maatwebsite\Excel\Facades\Excel;
 
 class OrderController extends Controller
 {
@@ -143,6 +147,35 @@ class OrderController extends Controller
 
         $order->load('orderItems.book');
         return view('orders.show', compact('order'));
+    }
+
+    public function exportHistory(Request $request)
+    {
+        $user = auth()->user();
+        $format = $request->input('format', 'xlsx');
+        abort_unless(in_array($format, ['xlsx', 'csv', 'pdf'], true), 422);
+
+        $filename = "my_orders_{$user->id}_" . now()->format('Ymd_His') . ".{$format}";
+
+        if ($format === 'pdf') {
+            $orders = $user->orders()->with('orderItems.book')->latest()->get();
+            $pdf = Pdf::loadView('orders.history-pdf', ['orders' => $orders, 'user' => $user]);
+            return $pdf->download($filename);
+        }
+
+        $writer = $format === 'xlsx' ? ExcelFormat::XLSX : ExcelFormat::CSV;
+        return Excel::download(new CustomerOrdersExport($user->id), $filename, $writer);
+    }
+
+    public function downloadInvoice(Order $order)
+    {
+        $this->authorize('view', $order);
+        $order->load(['user', 'orderItems.book']);
+
+        $filename = "invoice_order_{$order->id}.pdf";
+        $pdf = Pdf::loadView('orders.invoice-pdf', ['order' => $order]);
+
+        return $pdf->download($filename);
     }
 
     /**

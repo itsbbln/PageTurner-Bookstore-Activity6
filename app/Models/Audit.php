@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use OwenIt\Auditing\Models\Audit as BaseAudit;
+use Throwable;
 
 class Audit extends BaseAudit
 {
@@ -18,6 +20,44 @@ class Audit extends BaseAudit
         static::creating(function (self $audit) {
             $audit->uuid ??= (string) Str::uuid();
             $audit->checksum = $audit->checksumPayload();
+        });
+
+        static::created(function (self $audit) {
+            if (! env('AUDIT_CRITICAL_ALERTS', true)) {
+                return;
+            }
+
+            // Basic critical rule: changes to users/roles or admin-initiated deletes
+            $critical = $audit->auditable_type === User::class
+                || $audit->event === 'deleted'
+                || str_contains(strtolower((string) $audit->url), '/admin/');
+
+            if (! $critical) {
+                return;
+            }
+
+            try {
+                $emails = User::query()->where('role', 'admin')->pluck('email')->filter()->unique()->values()->all();
+                if (count($emails) === 0) {
+                    return;
+                }
+
+                $subject = "Critical Audit Alert: {$audit->event} {$audit->auditable_type}";
+                $body = "A critical audit event was recorded.\n\n"
+                    . "Event: {$audit->event}\n"
+                    . "User ID: {$audit->user_id}\n"
+                    . "Model: {$audit->auditable_type}\n"
+                    . "Model ID: {$audit->auditable_id}\n"
+                    . "IP: {$audit->ip_address}\n"
+                    . "URL: {$audit->url}\n"
+                    . "Timestamp: " . optional($audit->created_at)->toDateTimeString() . "\n";
+
+                Mail::raw($body, function ($message) use ($emails, $subject) {
+                    $message->to($emails)->subject($subject);
+                });
+            } catch (Throwable $e) {
+                logger()->warning('Critical audit alert email failed', ['error' => $e->getMessage()]);
+            }
         });
     }
 

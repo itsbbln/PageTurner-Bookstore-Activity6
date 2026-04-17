@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Audit;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 
 class AuditLogController extends Controller
 {
@@ -43,6 +45,60 @@ class AuditLogController extends Controller
         return view('admin.audit.show', [
             'audit' => $audit,
         ]);
+    }
+
+    public function exportCsv(Request $request)
+    {
+        $audits = $this->filteredAudits($request)->limit(5000)->get();
+
+        $csv = implode(',', ['id', 'user_id', 'event', 'auditable_type', 'auditable_id', 'ip_address', 'url', 'created_at']) . PHP_EOL;
+        foreach ($audits as $audit) {
+            $csv .= implode(',', [
+                $audit->id,
+                $audit->user_id,
+                '"' . str_replace('"', '""', (string) $audit->event) . '"',
+                '"' . str_replace('"', '""', (string) $audit->auditable_type) . '"',
+                $audit->auditable_id,
+                '"' . str_replace('"', '""', (string) $audit->ip_address) . '"',
+                '"' . str_replace('"', '""', (string) $audit->url) . '"',
+                optional($audit->created_at)?->toDateTimeString(),
+            ]) . PHP_EOL;
+        }
+
+        return Response::make($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="audit_export_' . now()->format('Ymd_His') . '.csv"',
+        ]);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $audits = $this->filteredAudits($request)->limit(2000)->get();
+        $pdf = Pdf::loadView('admin.audit.export-pdf', ['audits' => $audits]);
+
+        return $pdf->download('audit_export_' . now()->format('Ymd_His') . '.pdf');
+    }
+
+    private function filteredAudits(Request $request)
+    {
+        $q = Audit::query()->latest();
+        if ($request->filled('user_id')) {
+            $q->where('user_id', $request->integer('user_id'));
+        }
+        if ($request->filled('event')) {
+            $q->where('event', $request->string('event'));
+        }
+        if ($request->filled('auditable_type')) {
+            $q->where('auditable_type', $request->string('auditable_type'));
+        }
+        if ($request->filled('date_from')) {
+            $q->whereDate('created_at', '>=', $request->input('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $q->whereDate('created_at', '<=', $request->input('date_to'));
+        }
+
+        return $q;
     }
 }
 

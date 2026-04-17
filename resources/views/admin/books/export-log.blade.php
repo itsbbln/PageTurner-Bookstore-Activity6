@@ -42,10 +42,10 @@
             </div>
         </div>
 
-        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-            <a href="{{ route('admin.books.data.export-logs.show', $exportLog) }}" class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold bg-gray-100 text-gray-900 hover:bg-gray-200 w-full sm:w-auto">Refresh</a>
+        <div class="flex flex-wrap items-center gap-3">
+            <a href="{{ route('admin.books.data.export-logs.show', $exportLog) }}" class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold bg-gray-100 text-gray-900 hover:bg-gray-200">Refresh</a>
             @if ($exportLog->stored_path && $exportLog->status === 'completed')
-                <a href="{{ route('admin.books.data.export-logs.download', $exportLog) }}" class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold bg-green-50 text-green-700 hover:bg-green-100 w-full sm:w-auto">Download</a>
+                <a href="{{ route('admin.books.data.export-logs.download', $exportLog) }}" class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold bg-green-50 text-green-700 hover:bg-green-100">Download</a>
             @endif
             <div class="text-xs text-gray-500 sm:ml-auto">
                 UUID: <span class="font-mono">{{ $exportLog->uuid }}</span>

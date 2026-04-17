@@ -131,6 +131,8 @@
         <div class="flex flex-wrap gap-4">
             <a href="{{ route('books.index') }}" class="px-4 py-2 rounded bg-matcha-800 text-white hover:bg-matcha-900 transition">Browse Books</a>
             <a href="{{ route('orders.index') }}" class="px-4 py-2 rounded bg-gray-800 text-white hover:bg-gray-900 transition">View Order History</a>
+            <a href="{{ route('data.export.my') }}" class="px-4 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700 transition">Export My Data (JSON)</a>
+            <a href="{{ route('data.export.reading-history') }}" class="px-4 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700 transition">Export Reading History</a>
             <a href="{{ route('profile.edit') }}" class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 transition">Manage Profile &amp; Security</a>
         </div>
     </div>

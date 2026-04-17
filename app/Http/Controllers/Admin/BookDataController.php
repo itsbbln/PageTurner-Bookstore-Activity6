@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Excel as ExcelFormat;
-use Maatwebsite\Excel\HeadingRowImport;
 
 class BookDataController extends Controller
 {
@@ -78,24 +77,6 @@ class BookDataController extends Controller
         $allowDuplicateFile = (bool) ($validated['allow_duplicate_file'] ?? false);
         $fileHash = hash_file('sha256', $file->getRealPath());
 
-        // Validate import template headers before queueing.
-        $requiredHeaders = ['isbn', 'title', 'author', 'price', 'stock', 'category', 'description'];
-        $headingRows = (new HeadingRowImport())->toArray($file);
-        $headers = collect($headingRows[0][0] ?? [])
-            ->filter(fn ($h) => is_string($h) && trim($h) !== '')
-            ->map(fn ($h) => strtolower(trim($h)))
-            ->values()
-            ->all();
-
-        $missingHeaders = array_values(array_diff($requiredHeaders, $headers));
-        if (count($missingHeaders) > 0) {
-            return back()
-                ->withErrors([
-                    'file' => 'Invalid template. Missing required headers: ' . implode(', ', $missingHeaders),
-                ])
-                ->withInput();
-        }
-
         $existingImport = ImportLog::where('type', 'books')
             ->where('file_hash', $fileHash)
             ->latest()
@@ -153,6 +134,32 @@ class BookDataController extends Controller
         }
 
         return Storage::disk($importLog->stored_disk)->download($importLog->failure_report_path);
+    }
+
+    public function destroyImportLog(ImportLog $importLog)
+    {
+        abort_unless($importLog->type === 'books', 404);
+
+        // Avoid deleting a log while import may still be in progress.
+        if (in_array($importLog->status, ['queued', 'running'], true)) {
+            return back()->with('error', 'Cannot delete an import that is still in progress.');
+        }
+
+        $disk = $importLog->stored_disk ?: 'local';
+
+        if ($importLog->stored_path && Storage::disk($disk)->exists($importLog->stored_path)) {
+            Storage::disk($disk)->delete($importLog->stored_path);
+        }
+
+        if ($importLog->failure_report_path && Storage::disk($disk)->exists($importLog->failure_report_path)) {
+            Storage::disk($disk)->delete($importLog->failure_report_path);
+        }
+
+        $importLog->delete();
+
+        return redirect()
+            ->route('admin.books.data.index')
+            ->with('success', 'Import log deleted successfully.');
     }
 
     public function export(Request $request)

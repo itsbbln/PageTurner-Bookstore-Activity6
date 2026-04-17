@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -20,6 +21,7 @@ class ThrottlePerSecond
 
         if (RateLimiter::tooManyAttempts($key, max(1, $maxAttempts))) {
             $retryAfter = RateLimiter::availableIn($key);
+            $this->logRateLimitHit($request, $scope, (int) $maxAttempts, 0, (int) $retryAfter);
 
             return response()->json([
                 'message' => 'Too Many Requests',
@@ -42,6 +44,27 @@ class ThrottlePerSecond
         $response->headers->set('X-RateLimit-Remaining', (string) $remaining);
 
         return $response;
+    }
+
+    private function logRateLimitHit(Request $request, string $scope, int $limit, int $remaining, int $retryAfter): void
+    {
+        try {
+            DB::table('api_rate_limits')->insert([
+                'user_id' => $request->user()?->id,
+                'ip_address' => $request->ip(),
+                'endpoint' => $request->path(),
+                'scope' => $scope,
+                'limit_value' => $limit,
+                'remaining' => $remaining,
+                'retry_after' => $retryAfter,
+                'hit_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        } catch (\Throwable $e) {
+            // Don't break request handling when monitoring table is unavailable.
+            logger()->warning('api_rate_limits insert failed', ['error' => $e->getMessage()]);
+        }
     }
 }
 

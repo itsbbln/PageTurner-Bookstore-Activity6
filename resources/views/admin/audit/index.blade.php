@@ -61,6 +61,8 @@
             <div class="md:col-span-6 flex items-center gap-3">
                 <button class="inline-flex items-center px-4 py-2 rounded-lg bg-matcha-900 text-white hover:bg-matcha-800 font-semibold">Filter</button>
                 <a href="{{ route('admin.audit.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Reset</a>
+                <a href="{{ route('admin.audit.export.csv', request()->query()) }}" class="text-sm px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Export CSV</a>
+                <a href="{{ route('admin.audit.export.pdf', request()->query()) }}" class="text-sm px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Export PDF</a>
                 <div class="ml-auto text-xs text-gray-500">
                     Showing <span class="font-semibold text-gray-700">{{ $audits->count() }}</span> on this page
                 </div>

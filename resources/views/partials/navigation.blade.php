@@ -34,7 +34,7 @@
                                 Add Category
                             </a>
 
-                            <a href="{{ route('admin.books.data.index') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md">
+                            <a href="{{ route('admin.data-management.index') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md">
                                 Data Management
                             </a>
                         @endif

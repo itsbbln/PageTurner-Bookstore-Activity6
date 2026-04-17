@@ -35,6 +35,25 @@
             <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Pending Orders</h2>
             <p class="mt-3 text-3xl font-bold text-matcha-900">{{ $pendingOrders }}</p>
         </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Backup Status</h2>
+            <p class="mt-3 text-lg font-bold {{ ($latestBackup->status ?? null) === 'failed' ? 'text-red-700' : 'text-emerald-700' }}">
+                {{ $latestBackup ? strtoupper($latestBackup->status) : 'N/A' }}
+            </p>
+            <p class="text-xs text-gray-500 mt-1">{{ $latestBackup->executed_at ?? 'No backup log yet' }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Task Failures (7d)</h2>
+            <p class="mt-3 text-3xl font-bold text-matcha-900">{{ $recentTaskFailures }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Rate Limit Hits (24h)</h2>
+            <p class="mt-3 text-3xl font-bold text-matcha-900">{{ $recentRateLimitHits }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Failed Queue Jobs</h2>
+            <p class="mt-3 text-3xl font-bold text-matcha-900">{{ $queueFailedJobs }}</p>
+        </div>
     </div>
 
     {{-- Order Status Summary (including Processing) --}}

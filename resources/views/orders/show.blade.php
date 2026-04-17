@@ -132,6 +132,9 @@
             </div>
 
             <div class="space-y-2">
+                <a href="{{ route('orders.invoice', $order) }}" class="block text-center bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">
+                    Download PDF Invoice
+                </a>
                 <!-- if admin: return to admin/orders/index -->
                 @if(auth()->user()->role === 'admin')
                     <a href="{{ route('admin.orders.index') }}" class="block text-center bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition">

@@ -10,7 +10,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Concerns\Importable;
-use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
@@ -22,11 +21,11 @@ use Maatwebsite\Excel\Events\AfterChunk;
 use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Events\BeforeImport;
 use Maatwebsite\Excel\Events\ImportFailed;
+use Maatwebsite\Excel\Validators\Failure;
 
 class BooksImport implements ToModel, WithHeadingRow, WithValidation, WithChunkReading, WithBatchInserts, SkipsOnFailure, WithEvents, ShouldQueue
 {
     use Importable;
-    use SkipsFailures;
 
     public function __construct(
         public readonly int $importLogId,
@@ -48,6 +47,11 @@ class BooksImport implements ToModel, WithHeadingRow, WithValidation, WithChunkR
 
         $categoryId = Category::where('name', $categoryName)->value('id');
 
+        if (! $categoryId) {
+            // Let validation handle it, but keep a guard for safety.
+            return null;
+        }
+
         if ($this->updateExisting) {
             $book = Book::firstOrNew(['isbn' => $isbn]);
             $book->fill([
@@ -59,9 +63,12 @@ class BooksImport implements ToModel, WithHeadingRow, WithValidation, WithChunkR
                 'description' => $description,
             ]);
             $book->save();
+            $this->incrementSuccessfulRows();
 
             return null; // already persisted
         }
+
+        $this->incrementSuccessfulRows();
 
         return new Book([
             'category_id' => $categoryId,
@@ -79,26 +86,26 @@ class BooksImport implements ToModel, WithHeadingRow, WithValidation, WithChunkR
         $uniqueRule = $this->updateExisting ? 'sometimes' : 'unique:books,isbn';
 
         return [
-            '*.isbn' => ['required', new IsbnRule(), $uniqueRule],
-            '*.title' => ['required', 'string', 'max:255'],
-            '*.author' => ['required', 'string', 'max:255'],
-            '*.price' => ['required', 'numeric', 'min:0.01', 'max:9999.99'],
-            '*.stock' => ['required', 'integer', 'min:0'],
-            '*.category' => ['required', 'exists:categories,name'],
-            '*.description' => ['nullable', 'string'],
+            'isbn' => ['required', new IsbnRule(), $uniqueRule],
+            'title' => ['required', 'string', 'max:255'],
+            'author' => ['required', 'string', 'max:255'],
+            'price' => ['required', 'numeric', 'min:0.01', 'max:9999.99'],
+            'stock' => ['required', 'integer', 'min:0'],
+            'category' => ['required', 'exists:categories,name'],
+            'description' => ['nullable', 'string'],
         ];
     }
 
     public function customValidationAttributes(): array
     {
         return [
-            '*.isbn' => 'ISBN',
-            '*.title' => 'Title',
-            '*.author' => 'Author',
-            '*.price' => 'Price',
-            '*.stock' => 'Stock',
-            '*.category' => 'Category',
-            '*.description' => 'Description',
+            'isbn' => 'ISBN',
+            'title' => 'Title',
+            'author' => 'Author',
+            'price' => 'Price',
+            'stock' => 'Stock',
+            'category' => 'Category',
+            'description' => 'Description',
         ];
     }
 
@@ -122,45 +129,35 @@ class BooksImport implements ToModel, WithHeadingRow, WithValidation, WithChunkR
                 ]);
             },
             AfterChunk::class => function (AfterChunk $event) {
-                $chunkSize = (int) $event->getConcernable()->chunkSize();
-                ImportLog::whereKey($this->importLogId)->update([
-                    'processed_rows' => DB::raw("processed_rows + {$chunkSize}"),
-                ]);
+                // no-op: counts are consolidated in AfterImport from success + failures
             },
             AfterImport::class => function () {
-                $failures = $this->failures();
-                $failedRows = $failures->count();
-
-                $failurePayload = $failures->take(200)->map(function ($failure) {
-                    return [
-                        'row' => $failure->row(),
-                        'attribute' => $failure->attribute(),
-                        'errors' => $failure->errors(),
-                        'values' => $failure->values(),
-                    ];
-                })->values()->all();
-
-                $status = $failedRows > 0 ? 'completed_with_errors' : 'completed';
-
                 $log = ImportLog::find($this->importLogId);
                 if (! $log) {
                     return;
                 }
 
-                $reportPath = null;
-                if ($failedRows > 0) {
+                $failedRows = (int) $log->failed_rows;
+                $successfulRows = (int) $log->successful_rows;
+                $processedRows = $successfulRows + $failedRows;
+                $status = $failedRows > 0 ? 'completed_with_errors' : 'completed';
+
+                $reportPath = $log->failure_report_path;
+                if ($failedRows > 0 && ! empty($log->failures)) {
                     $reportPath = "imports/books/failure_reports/{$log->uuid}.json";
                     Storage::disk($log->stored_disk)->put($reportPath, json_encode([
                         'import_uuid' => $log->uuid,
                         'failed_rows' => $failedRows,
-                        'failures' => $failurePayload,
+                        'successful_rows' => $successfulRows,
+                        'processed_rows' => $processedRows,
+                        'failures' => $log->failures,
                     ], JSON_PRETTY_PRINT));
                 }
 
                 $log->update([
                     'status' => $status,
-                    'failed_rows' => $failedRows,
-                    'failures' => $failurePayload,
+                    'processed_rows' => $processedRows,
+                    'total_rows' => $processedRows,
                     'failure_report_path' => $reportPath,
                     'finished_at' => now(),
                 ]);
@@ -172,6 +169,48 @@ class BooksImport implements ToModel, WithHeadingRow, WithValidation, WithChunkR
                 ]);
             },
         ];
+    }
+
+    /**
+     * Persist validation failures in DB (works across queued chunks).
+     */
+    public function onFailure(Failure ...$failures): void
+    {
+        $failurePayload = collect($failures)->map(function (Failure $failure) {
+            return [
+                'row' => $failure->row(),
+                'attribute' => $failure->attribute(),
+                'errors' => $failure->errors(),
+                'values' => $failure->values(),
+            ];
+        })->values();
+
+        ImportLog::whereKey($this->importLogId)->update([
+            'failed_rows' => DB::raw('failed_rows + ' . $failurePayload->count()),
+        ]);
+
+        $log = ImportLog::find($this->importLogId);
+        if (! $log) {
+            return;
+        }
+
+        $existingFailures = collect($log->failures ?? []);
+        $merged = $existingFailures
+            ->concat($failurePayload)
+            ->take(200)
+            ->values()
+            ->all();
+
+        $log->update([
+            'failures' => $merged,
+        ]);
+    }
+
+    private function incrementSuccessfulRows(): void
+    {
+        ImportLog::whereKey($this->importLogId)->update([
+            'successful_rows' => DB::raw('successful_rows + 1'),
+        ]);
     }
 
     private function normalizeIsbn(?string $value): string

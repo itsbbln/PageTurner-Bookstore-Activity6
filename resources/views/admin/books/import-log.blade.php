@@ -47,10 +47,20 @@
             </div>
         </div>
 
-        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-            <a href="{{ route('admin.books.data.import-logs.show', $importLog) }}" class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold bg-gray-100 text-gray-900 hover:bg-gray-200 w-full sm:w-auto">Refresh</a>
+        <div class="flex flex-wrap items-center gap-3">
+            <a href="{{ route('admin.books.data.import-logs.show', $importLog) }}" class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold bg-gray-100 text-gray-900 hover:bg-gray-200">Refresh</a>
             @if ($importLog->failure_report_path)
-                <a href="{{ route('admin.books.data.import-logs.failure-report', $importLog) }}" class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold bg-red-50 text-red-700 hover:bg-red-100 w-full sm:w-auto">Download failure report</a>
+                <a href="{{ route('admin.books.data.import-logs.failure-report', $importLog) }}" class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold bg-red-50 text-red-700 hover:bg-red-100">Download failure report</a>
+            @endif
+            @if (!in_array($importLog->status, ['queued', 'running']))
+                <form method="POST" action="{{ route('admin.books.data.import-logs.destroy', $importLog) }}"
+                      onsubmit="return confirm('Delete this import log and its files? This cannot be undone.');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold bg-red-600 text-white hover:bg-red-700">
+                        Delete import
+                    </button>
+                </form>
             @endif
             <div class="text-xs text-gray-500 sm:ml-auto">
                 UUID: <span class="font-mono">{{ $importLog->uuid }}</span>
@@ -58,38 +68,51 @@
         </div>
 
         @if (!empty($importLog->failures))
-            <div>
-                <h2 class="font-semibold text-gray-900">Sample failures (up to 200)</h2>
-                <div class="mt-3 overflow-auto border border-gray-200 rounded-xl">
-                    <table class="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Row</th>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Field</th>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Errors</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            @foreach ($importLog->failures as $failure)
+            <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <details>
+                    <summary class="cursor-pointer list-none">
+                        <div class="flex items-center justify-between gap-4">
+                            <div>
+                                <h2 class="font-semibold text-amber-900">Sample failures (up to 200)</h2>
+                                <p class="text-xs text-amber-800 mt-1">
+                                    This import has validation errors. Click to view row-by-row failure reasons.
+                                </p>
+                            </div>
+                            <span class="text-xs font-semibold text-amber-900">View details</span>
+                        </div>
+                    </summary>
+
+                    <div class="mt-4 overflow-auto border border-amber-200 rounded-xl bg-white">
+                        <table class="min-w-full divide-y divide-gray-200 text-sm">
+                            <thead class="bg-gray-50">
                                 <tr>
-                                    <td class="px-4 py-2">{{ $failure['row'] ?? '—' }}</td>
-                                    <td class="px-4 py-2">{{ $failure['attribute'] ?? '—' }}</td>
-                                    <td class="px-4 py-2">
-                                        @if (!empty($failure['errors']))
-                                            <ul class="list-disc pl-5 space-y-1">
-                                                @foreach ($failure['errors'] as $err)
-                                                    <li>{{ $err }}</li>
-                                                @endforeach
-                                            </ul>
-                                        @else
-                                            —
-                                        @endif
-                                    </td>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Row</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Field</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Why it failed</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                @foreach ($importLog->failures as $failure)
+                                    <tr>
+                                        <td class="px-4 py-2">{{ $failure['row'] ?? '—' }}</td>
+                                        <td class="px-4 py-2">{{ $failure['attribute'] ?? '—' }}</td>
+                                        <td class="px-4 py-2">
+                                            @if (!empty($failure['errors']))
+                                                <ul class="list-disc pl-5 space-y-1">
+                                                    @foreach ($failure['errors'] as $err)
+                                                        <li>{{ $err }}</li>
+                                                    @endforeach
+                                                </ul>
+                                            @else
+                                                —
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
             </div>
         @endif
     </div>

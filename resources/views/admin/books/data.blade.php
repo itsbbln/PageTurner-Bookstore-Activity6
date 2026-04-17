@@ -59,8 +59,8 @@
                     </label>
                 </div>
 
-                <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <button class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 rounded-lg bg-matcha-900 text-white hover:bg-matcha-800 font-semibold">
+                <div class="flex flex-wrap items-center gap-3">
+                    <button class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-matcha-900 text-white hover:bg-matcha-800 font-semibold">
                         Queue import
                     </button>
                     <p class="text-xs text-gray-500">You can refresh the log page to see progress.</p>
@@ -176,8 +176,8 @@
                 </div>
 
                 <div class="sm:col-span-2">
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-                        <button class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 font-semibold">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 font-semibold">
                             Export & download
                         </button>
                         <p class="text-xs text-gray-500">Large exports will queue and auto-download when ready.</p>

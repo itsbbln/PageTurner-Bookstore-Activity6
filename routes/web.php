@@ -9,6 +9,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Admin\BookDataController;
+use App\Http\Controllers\Admin\AuditLogController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -101,6 +103,21 @@ Route::put('/orders/{order}/status', [OrderController::class, 'update'])->name('
 
 // User management (optional)
 Route::get('/users', [UserController::class, 'index'])->name('users.index');
+
+// Audit logs
+Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit.index');
+Route::get('/audit-logs/{audit}', [AuditLogController::class, 'show'])->name('audit.show');
+
+// Data Management: Book Import/Export
+Route::get('/books/data', [BookDataController::class, 'index'])->name('books.data.index');
+Route::post('/books/data/import', [BookDataController::class, 'import'])->name('books.data.import');
+Route::get('/books/data/import-template', [BookDataController::class, 'downloadTemplate'])->name('books.data.template');
+Route::get('/books/data/import-logs/{importLog:uuid}', [BookDataController::class, 'showImportLog'])->name('books.data.import-logs.show');
+Route::get('/books/data/import-logs/{importLog:uuid}/failure-report', [BookDataController::class, 'downloadImportFailureReport'])->name('books.data.import-logs.failure-report');
+
+Route::post('/books/data/export', [BookDataController::class, 'export'])->name('books.data.export');
+Route::get('/books/data/export-logs/{exportLog:uuid}', [BookDataController::class, 'showExportLog'])->name('books.data.export-logs.show');
+Route::get('/books/data/export-logs/{exportLog:uuid}/download', [BookDataController::class, 'downloadExport'])->name('books.data.export-logs.download');
 });
 // Logout
 Route::post('/logout', [ProfileController::class, 'logout'])->name('logout');

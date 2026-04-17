@@ -33,6 +33,10 @@
                             <a href="{{ route('admin.categories.create') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md">
                                 Add Category
                             </a>
+
+                            <a href="{{ route('admin.books.data.index') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md">
+                                Data Management
+                            </a>
                         @endif
                     @endauth
                 </div>
@@ -73,6 +77,9 @@
                     @if(auth()->user()->isAdmin())
                         <a href="{{ route('admin.dashboard') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md text-yellow-300 font-semibold">
                             Admin Dashboard
+                        </a>
+                        <a href="{{ route('admin.audit.index') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md">
+                            Audit Logs
                         </a>
                     @endif
 

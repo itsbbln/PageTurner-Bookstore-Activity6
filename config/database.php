@@ -76,6 +76,10 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            'dump' => [
+                // Required for Spatie Backups on Windows when pg_dump isn't on PATH.
+                'dumpBinaryPath' => env('PG_DUMP_PATH', 'C:\\Program Files\\PostgreSQL\\17\\bin'),
+            ],
         ],
 
         'sqlsrv' => [

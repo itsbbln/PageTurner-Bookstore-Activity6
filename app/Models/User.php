@@ -5,10 +5,12 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+use OwenIt\Auditing\Auditable;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail, AuditableContract
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, Auditable;
     protected $fillable = [
         'name',
         'email',
@@ -16,6 +18,11 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
     ];
     protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected $auditExclude = [
         'password',
         'remember_token',
     ];

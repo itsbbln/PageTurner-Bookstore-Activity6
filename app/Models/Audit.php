@@ -10,10 +10,9 @@ use Throwable;
 
 class Audit extends BaseAudit
 {
-    protected $fillable = [
-        'uuid',
-        'checksum',
-    ];
+    // Allow the auditing package to mass-assign its required attributes (event, auditable_type, etc.)
+    // while we still auto-fill uuid/checksum in model events.
+    protected $guarded = [];
 
     protected static function booted(): void
     {

@@ -31,7 +31,7 @@
         {{-- Order Details --}}
         <div class="md:col-span-2 space-y-6">
             {{-- Items --}}
-            <div class="bg-white rounded shadow p-6">
+            <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6">
                 <h2 class="text-xl font-bold mb-4">Order Items</h2>
                 
                 <table class="w-full">
@@ -48,7 +48,7 @@
                             <tr class="border-b hover:bg-gray-50">
                                 <td class="py-3">
                                     @if($item->book)
-                                        <a href="{{ route('books.show', $item->book) }}" class="text-indigo-600 hover:underline">
+                                        <a href="{{ route('books.show', $item->book) }}" class="text-matcha-800 hover:text-matcha-900 font-semibold">
                                             {{ $item->book->title }}
                                         </a>
                                         <div class="text-sm text-gray-600">by {{ $item->book->author }}</div>

@@ -81,6 +81,19 @@ class BooksImport implements ToModel, WithHeadingRow, WithValidation, WithChunkR
         ]);
     }
 
+    /**
+     * Normalize data before Laravel Excel validates it.
+     * This prevents false ISBN errors when Excel casts ISBN to number/scientific notation.
+     */
+    public function prepareForValidation($data, $index)
+    {
+        if (is_array($data) && array_key_exists('isbn', $data)) {
+            $data['isbn'] = $this->normalizeIsbn($data['isbn']);
+        }
+
+        return $data;
+    }
+
     public function rules(): array
     {
         $uniqueRule = $this->updateExisting ? 'sometimes' : 'unique:books,isbn';
@@ -215,8 +228,44 @@ class BooksImport implements ToModel, WithHeadingRow, WithValidation, WithChunkR
 
     private function normalizeIsbn(?string $value): string
     {
-        $raw = strtoupper(trim((string) $value));
-        return str_replace([' ', '-'], '', $raw);
+        $raw = $this->coerceExcelNumberToString($value);
+        $raw = strtoupper(trim($raw));
+
+        // keep digits and X only, strip spaces/hyphens/other punctuation
+        $raw = preg_replace('/[^0-9X]/', '', $raw) ?? '';
+
+        return $raw;
+    }
+
+    /**
+     * Excel often provides numeric/scientific values for long digit strings.
+     * ISBN-10/13 (10-13 digits) is safe to round-trip through float formatting.
+     */
+    private function coerceExcelNumberToString(mixed $value): string
+    {
+        if ($value === null) {
+            return '';
+        }
+
+        if (is_int($value)) {
+            return (string) $value;
+        }
+
+        if (is_float($value)) {
+            return sprintf('%.0f', $value);
+        }
+
+        $s = trim((string) $value);
+        if ($s === '') {
+            return '';
+        }
+
+        // Scientific notation string like 9.78123E+12
+        if (preg_match('/^[0-9]+(\\.[0-9]+)?E\\+?[0-9]+$/i', $s)) {
+            return sprintf('%.0f', (float) $s);
+        }
+
+        return $s;
     }
 }
 

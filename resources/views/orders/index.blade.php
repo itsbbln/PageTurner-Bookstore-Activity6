@@ -13,7 +13,7 @@
 @endsection
 
 @section('content')
-    <div class="mb-4 bg-white rounded-lg shadow p-4">
+    <div class="mb-4 bg-white rounded-lg shadow-md border border-gray-100 p-4">
         <div class="text-sm font-semibold text-gray-900 mb-2">Data Portability</div>
         <div class="flex flex-wrap gap-2">
             <a href="{{ route('orders.export.history', ['format' => 'xlsx']) }}" class="px-3 py-2 rounded bg-indigo-600 text-white text-sm">Download XLSX</a>
@@ -33,7 +33,7 @@
     @if ($orders->count())
         <div class="space-y-6">
             @foreach ($orders as $order)
-                <div class="bg-white p-4 rounded shadow">
+                <div class="bg-white p-4 rounded-lg shadow-md border border-gray-100">
                     <div class="flex justify-between items-center mb-2">
                         <div>
                             <strong>Order #{{ $order->id }}</strong>

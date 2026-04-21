@@ -2,12 +2,19 @@
 
 @section('title', 'Orders Management - Admin')
 
+@section('header')
+    <div class="flex items-center justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-white">Order Management</h1>
+            <p class="text-sm text-matcha-100">Export orders, generate financial reports, and manage statuses.</p>
+        </div>
+        <a href="{{ route('admin.dashboard') }}" class="text-sm text-matcha-200 hover:text-white">← Back to Dashboard</a>
+    </div>
+@endsection
+
 @section('content')
-<div class="py-12 bg-gray-50">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-            <div class="p-6">
-                <h1 class="text-3xl font-bold text-gray-900 mb-6">Order Management</h1>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-100 p-6">
 
                 @if (session('success'))
                     <div class="mb-4 rounded-lg bg-green-50 p-4 text-sm text-green-700 border border-green-200">
@@ -16,40 +23,89 @@
                 @endif
 
                 @if ($orders->count() > 0)
-                    <div class="mb-4 p-4 rounded-lg bg-gray-50 border border-gray-200">
-                        <h2 class="text-sm font-semibold text-gray-900 mb-3">Order Export Module</h2>
-                        <form method="POST" action="{{ route('admin.orders.export') }}" class="grid grid-cols-1 md:grid-cols-6 gap-3 mb-3">
-                            @csrf
-                            <select name="format" class="border rounded px-2 py-1 text-sm">
-                                <option value="xlsx">XLSX</option>
-                                <option value="csv">CSV</option>
-                                <option value="pdf">PDF</option>
-                            </select>
-                            <select name="status" class="border rounded px-2 py-1 text-sm">
-                                <option value="">All Status</option>
-                                <option value="pending">Pending</option>
-                                <option value="processing">Processing</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
-                            <input type="date" name="date_from" class="border rounded px-2 py-1 text-sm" />
-                            <input type="date" name="date_to" class="border rounded px-2 py-1 text-sm" />
-                            <input type="number" name="customer_id" placeholder="Customer ID" class="border rounded px-2 py-1 text-sm" />
-                            <button type="submit" class="bg-indigo-600 text-white rounded px-3 py-1 text-sm">Export Orders</button>
-                        </form>
+                    <div class="mb-6 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between mb-4">
+                            <div>
+                                <h2 class="text-base font-semibold text-gray-900">Order Export Module</h2>
+                                <p class="text-xs text-gray-500">Tip: leave filters blank to export all.</p>
+                            </div>
+                        </div>
 
-                        <form method="POST" action="{{ route('admin.orders.export.financial') }}" class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="rounded-xl border border-gray-200 bg-white p-5">
+                                <div class="text-sm font-semibold text-gray-900">Export orders</div>
+                                <form method="POST" action="{{ route('admin.orders.export') }}" class="mt-4 flex flex-wrap items-end gap-4">
                             @csrf
-                            <select name="format" class="border rounded px-2 py-1 text-sm">
-                                <option value="xlsx">XLSX</option>
-                                <option value="csv">CSV</option>
-                                <option value="pdf">PDF</option>
-                            </select>
-                            <input type="date" name="date_from" class="border rounded px-2 py-1 text-sm" />
-                            <input type="date" name="date_to" class="border rounded px-2 py-1 text-sm" />
-                            <input type="number" step="0.01" min="0" max="1" name="tax_rate" placeholder="Tax rate e.g. 0.12" class="border rounded px-2 py-1 text-sm" />
-                            <button type="submit" class="bg-green-600 text-white rounded px-3 py-1 text-sm">Export Financial Report</button>
+                            <div class="w-28">
+                                <label class="block text-xs font-medium text-gray-700">Format</label>
+                                <select name="format" class="mt-1 block w-full rounded-lg border-gray-300 px-3 py-2 text-sm">
+                                    <option value="xlsx">XLSX</option>
+                                    <option value="csv">CSV</option>
+                                    <option value="pdf">PDF</option>
+                                </select>
+                            </div>
+                            <div class="w-40">
+                                <label class="block text-xs font-medium text-gray-700">Status</label>
+                                <select name="status" class="mt-1 block w-full rounded-lg border-gray-300 px-3 py-2 text-sm">
+                                    <option value="">All</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="processing">Processing</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="w-40">
+                                <label class="block text-xs font-medium text-gray-700">From</label>
+                                <input type="date" name="date_from" class="mt-1 block w-full rounded-lg border-gray-300 px-3 py-2 text-sm" />
+                            </div>
+                            <div class="w-40">
+                                <label class="block text-xs font-medium text-gray-700">To</label>
+                                <input type="date" name="date_to" class="mt-1 block w-full rounded-lg border-gray-300 px-3 py-2 text-sm" />
+                            </div>
+                            <div class="w-44">
+                                <label class="block text-xs font-medium text-gray-700">Customer ID</label>
+                                <input type="number" name="customer_id" placeholder="Optional" class="mt-1 block w-full rounded-lg border-gray-300 px-3 py-2 text-sm" />
+                            </div>
+                            <div class="ml-auto">
+                                <button type="submit" class="inline-flex items-center justify-center rounded-md px-4 py-2 bg-matcha-800 text-white font-semibold text-xs uppercase tracking-widest hover:bg-matcha-900 transition ease-in-out duration-150">
+                                    Export
+                                </button>
+                            </div>
                         </form>
+                            </div>
+
+                            <div class="rounded-xl border border-gray-200 bg-white p-5">
+                                <div class="text-sm font-semibold text-gray-900">Export financial report</div>
+                                <form method="POST" action="{{ route('admin.orders.export.financial') }}" class="mt-4 flex flex-wrap items-end gap-4">
+                            @csrf
+                            <div class="w-28">
+                                <label class="block text-xs font-medium text-gray-700">Format</label>
+                                <select name="format" class="mt-1 block w-full rounded-lg border-gray-300 px-3 py-2 text-sm">
+                                    <option value="xlsx">XLSX</option>
+                                    <option value="csv">CSV</option>
+                                    <option value="pdf">PDF</option>
+                                </select>
+                            </div>
+                            <div class="w-40">
+                                <label class="block text-xs font-medium text-gray-700">From</label>
+                                <input type="date" name="date_from" class="mt-1 block w-full rounded-lg border-gray-300 px-3 py-2 text-sm" />
+                            </div>
+                            <div class="w-40">
+                                <label class="block text-xs font-medium text-gray-700">To</label>
+                                <input type="date" name="date_to" class="mt-1 block w-full rounded-lg border-gray-300 px-3 py-2 text-sm" />
+                            </div>
+                            <div class="w-44">
+                                <label class="block text-xs font-medium text-gray-700">Tax rate</label>
+                                <input type="number" step="0.01" min="0" max="1" name="tax_rate" placeholder="e.g. 0.12" class="mt-1 block w-full rounded-lg border-gray-300 px-3 py-2 text-sm" />
+                            </div>
+                            <div class="ml-auto">
+                                <button type="submit" class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700">
+                                    Export
+                                </button>
+                            </div>
+                        </form>
+                            </div>
+                        </div>
                     </div>
 
                     {{-- Page size selector --}}
@@ -194,8 +250,5 @@
                         <p class="text-gray-600">No customer orders have been placed.</p>
                     </div>
                 @endif
-            </div>
-        </div>
-    </div>
 </div>
 @endsection

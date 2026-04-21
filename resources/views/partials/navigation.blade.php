@@ -26,16 +26,12 @@
 
                     @auth
                         @if(auth()->user()->isAdmin())
-                            <a href="{{ route('admin.books.create') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md">
-                                Add Book
+                            <a href="{{ route('admin.dashboard') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md">
+                                Dashboard
                             </a>
-
-                            <a href="{{ route('admin.categories.create') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md">
-                                Add Category
-                            </a>
-
-                            <a href="{{ route('admin.data-management.index') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md">
-                                Data Management
+                        @else
+                            <a href="{{ route('dashboard') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md">
+                                Dashboard
                             </a>
                         @endif
                     @endauth
@@ -56,9 +52,6 @@
 
                 @auth
                     @if(!auth()->user()->isAdmin())
-                        <a href="{{ route('dashboard') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md">
-                            My Dashboard
-                        </a>
                         <!-- Shopping Cart (Customer only) -->
                         <a href="{{ route('cart.index') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -72,31 +65,64 @@
                         <a href="{{ route('orders.index') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md">
                             My Orders
                         </a>
+
+                        <a href="{{ route('profile.edit') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md">
+                            Profile
+                        </a>
+
+                        <form method="POST" action="{{ route('logout') }}" class="inline">
+                            @csrf
+                            <button type="submit" class="hover:bg-matcha-800 px-3 py-2 rounded-md">
+                                Logout
+                            </button>
+                        </form>
                     @endif
 
                     @if(auth()->user()->isAdmin())
-                        <a href="{{ route('admin.dashboard') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md text-yellow-300 font-semibold">
-                            Admin Dashboard
-                        </a>
-                        <a href="{{ route('admin.audit.index') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md">
-                            Audit Logs
-                        </a>
+                        <!-- Admin Dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" @click.away="open = false" class="flex items-center hover:bg-matcha-800 px-3 py-2 rounded-md text-yellow-300 font-semibold transition duration-150 ease-in-out">
+                                <span>Admin</span>
+                                <svg class="ml-1 h-4 w-4 fill-current" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+
+                            <div x-show="open" 
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="transform opacity-0 scale-95"
+                                 x-transition:enter-end="transform opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="transform opacity-100 scale-100"
+                                 x-transition:leave-end="transform opacity-0 scale-95"
+                                 class="absolute right-0 mt-2 w-56 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50" 
+                                 style="display: none;">
+                                
+                                <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-matcha-800 hover:text-white transition">Profile</a>
+                                 
+                                 <div class="border-t border-gray-200"></div>
+                                 
+                                 <a href="{{ route('admin.books.create') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-matcha-800 hover:text-white transition">Manage Books</a>
+                                 <a href="{{ route('admin.categories.create') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-matcha-800 hover:text-white transition">Manage Categories</a>
+                                 <a href="{{ route('admin.orders.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-matcha-800 hover:text-white transition">Manage Orders</a>
+                                 <a href="{{ route('admin.data-management.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-matcha-800 hover:text-white transition">Data Management</a>
+                                 <a href="{{ route('admin.audit.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-matcha-800 hover:text-white transition">Audit Logs</a>
+                                 
+                                 <div class="border-t border-gray-200"></div>
+                                 
+                                 <form method="POST" action="{{ route('logout') }}">
+                                     @csrf
+                                     <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-matcha-800 hover:text-white transition">
+                                         Logout
+                                     </button>
+                                 </form>
+                            </div>
+                        </div>
                     @endif
 
-                    <a href="{{ route('profile.edit') }}" class="hover:bg-matcha-800 px-3 py-2 rounded-md">
-                        Profile
-                    </a>
-
-                    <span class="text-matcha-100">
+                    <span class="text-matcha-100 hidden lg:inline">
                         {{ auth()->user()->name }}
                     </span>
-
-                    <form method="POST" action="{{ route('logout') }}" class="inline">
-                        @csrf
-                        <button type="submit" class="hover:bg-matcha-800 px-3 py-2 rounded-md">
-                            Logout
-                        </button>
-                    </form>
                 @endauth
             </div>
 

@@ -16,11 +16,19 @@ class UserController extends Controller
     {
         $users = User::withCount(['orders', 'reviews'])
             ->latest()
-            ->paginate(15);
+            ->paginate(5);
 
-        $recentUserImports = ImportLog::query()->where('type', 'users')->latest()->take(10)->get();
-        $recentUserExports = ExportLog::query()->where('type', 'users')->latest()->take(10)->get();
-        $recentOrderExports = ExportLog::query()->whereIn('type', ['orders', 'financial'])->latest()->take(10)->get();
+        $recentUserImports = ImportLog::query()->where('type', 'users')
+            ->latest()
+            ->paginate(5, ['*'], 'import_page');
+
+        $recentUserExports = ExportLog::query()->where('type', 'users')
+            ->latest()
+            ->paginate(5, ['*'], 'export_page');
+
+        $recentOrderExports = ExportLog::query()->whereIn('type', ['orders', 'financial'])
+            ->latest()
+            ->paginate(5, ['*'], 'order_export_page');
 
         return view('admin.users.index', compact('users', 'recentUserImports', 'recentUserExports', 'recentOrderExports'));
     }

@@ -9,49 +9,57 @@ class IsbnRule implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (! is_string($value)) {
-            $fail('The ISBN must be a string.');
+        $raw = $this->coerceExcelNumberToString($value);
+        $raw = strtoupper(trim($raw));
+
+        // keep digits and X only, strip spaces/hyphens/other punctuation
+        $raw = preg_replace('/[^0-9X]/', '', $raw) ?? '';
+
+        // Length-only validation (no checksum), per requirement.
+        // - ISBN-10: 10 chars, digits with optional X as last char
+        // - ISBN-13: 13 digits
+        if ($this->looksLikeIsbn10($raw) || $this->looksLikeIsbn13($raw)) {
             return;
         }
 
-        $raw = strtoupper(trim($value));
-        $raw = str_replace([' ', '-'], '', $raw);
-
-        if ($this->isIsbn10($raw) || $this->isIsbn13($raw)) {
-            return;
-        }
-
-        $fail('The ISBN must be a valid ISBN-10 or ISBN-13.');
+        $fail('The ISBN must be 10 digits (optionally ending with X) or 13 digits.');
     }
 
-    private function isIsbn10(string $s): bool
+    private function coerceExcelNumberToString(mixed $value): string
     {
-        if (! preg_match('/^[0-9]{9}[0-9X]$/', $s)) {
-            return false;
+        if ($value === null) {
+            return '';
         }
 
-        $sum = 0;
-        for ($i = 0; $i < 10; $i++) {
-            $digit = $s[$i] === 'X' ? 10 : (int) $s[$i];
-            $sum += $digit * (10 - $i);
+        if (is_int($value)) {
+            return (string) $value;
         }
 
-        return $sum % 11 === 0;
+        if (is_float($value)) {
+            return sprintf('%.0f', $value);
+        }
+
+        $s = trim((string) $value);
+        if ($s === '') {
+            return '';
+        }
+
+        // Scientific notation string like 9.78123E+12
+        if (preg_match('/^[0-9]+(\\.[0-9]+)?E\\+?[0-9]+$/i', $s)) {
+            return sprintf('%.0f', (float) $s);
+        }
+
+        return $s;
     }
 
-    private function isIsbn13(string $s): bool
+    private function looksLikeIsbn10(string $s): bool
     {
-        if (! preg_match('/^[0-9]{13}$/', $s)) {
-            return false;
-        }
+        return (bool) preg_match('/^[0-9]{9}[0-9X]$/', $s);
+    }
 
-        $sum = 0;
-        for ($i = 0; $i < 13; $i++) {
-            $digit = (int) $s[$i];
-            $sum += $digit * (($i % 2 === 0) ? 1 : 3);
-        }
-
-        return $sum % 10 === 0;
+    private function looksLikeIsbn13(string $s): bool
+    {
+        return (bool) preg_match('/^[0-9]{13}$/', $s);
     }
 }
 

@@ -11,7 +11,7 @@
 
 @section('content')
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6">
             <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Backup Status</div>
             <div class="mt-2 text-lg font-bold {{ ($backup->status ?? null) === 'failed' ? 'text-red-700' : 'text-emerald-700' }}">
                 {{ $backup ? strtoupper($backup->status) : 'N/A' }}
@@ -30,15 +30,23 @@
 
     <div class="bg-white rounded-lg shadow p-6 mb-8">
         <h2 class="text-lg font-semibold text-gray-900 mb-3">Quick Actions</h2>
-        <div class="flex flex-wrap gap-3">
-            <a href="{{ route('admin.books.data.index') }}" class="px-4 py-2 rounded bg-matcha-800 text-white hover:bg-matcha-900">Books Import/Export</a>
-            <a href="{{ route('admin.users.index') }}" class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Users Import/Export</a>
-            <a href="{{ route('admin.orders.index') }}" class="px-4 py-2 rounded bg-gray-800 text-white hover:bg-gray-900">Order Exports</a>
-            <a href="{{ route('admin.audit.index') }}" class="px-4 py-2 rounded bg-purple-600 text-white hover:bg-purple-700">Audit Logs & Export</a>
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="{{ route('admin.books.data.index') }}" class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold bg-matcha-800 text-white hover:bg-matcha-900">
+                Books import/export
+            </a>
+            <a href="{{ route('admin.users.index') }}" class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700">
+                Users import/export
+            </a>
+            <a href="{{ route('admin.orders.index') }}" class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold bg-gray-900 text-white hover:bg-gray-800">
+                Order exports
+            </a>
+            <a href="{{ route('admin.audit.index') }}" class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold bg-purple-600 text-white hover:bg-purple-700">
+                Audit logs & export
+            </a>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-white rounded-lg shadow p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-3">Recent Book Imports</h2>
             <div class="space-y-2 text-sm text-gray-700">
@@ -117,7 +125,7 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow p-6 lg:col-span-2">
+        <div class="bg-white rounded-lg shadow p-6 md:col-span-2">
             <h2 class="text-lg font-semibold text-gray-900 mb-3">Recent Audit Events</h2>
             <div class="space-y-2 text-sm text-gray-700">
                 @forelse($recentAudits as $a)

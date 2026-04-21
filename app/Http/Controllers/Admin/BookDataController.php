@@ -22,13 +22,11 @@ class BookDataController extends Controller
 
         $importLogs = ImportLog::where('type', 'books')
             ->latest()
-            ->take(10)
-            ->get();
+            ->paginate(5, ['*'], 'import_page');
 
         $exportLogs = ExportLog::where('type', 'books')
             ->latest()
-            ->take(10)
-            ->get();
+            ->paginate(5, ['*'], 'export_page');
 
         $defaultColumns = [
             'isbn' => true,

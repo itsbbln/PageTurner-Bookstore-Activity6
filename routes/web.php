@@ -123,6 +123,7 @@ Route::post('/users/export', [UserDataController::class, 'export'])->name('users
 // Audit logs
 Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit.index');
 Route::get('/audit-logs/{audit}', [AuditLogController::class, 'show'])->name('audit.show');
+Route::get('/audit/{audit}/details', [AuditLogController::class, 'details'])->name('audit.details');
 Route::get('/audit-logs-export/csv', [AuditLogController::class, 'exportCsv'])->name('audit.export.csv');
 Route::get('/audit-logs-export/pdf', [AuditLogController::class, 'exportPdf'])->name('audit.export.pdf');
 

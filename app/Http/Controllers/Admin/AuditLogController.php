@@ -31,7 +31,7 @@ class AuditLogController extends Controller
             $q->whereDate('created_at', '<=', $request->input('date_to'));
         }
 
-        $audits = $q->paginate(25)->appends($request->query());
+        $audits = $q->paginate(5)->appends($request->query());
 
         $users = User::orderBy('name')->get(['id', 'name', 'email']);
         $eventOptions = ['created', 'updated', 'deleted', 'restored'];
@@ -44,6 +44,35 @@ class AuditLogController extends Controller
     {
         return view('admin.audit.show', [
             'audit' => $audit,
+        ]);
+    }
+
+    public function details(Audit $audit)
+    {
+        $old = is_array($audit->old_values) ? $audit->old_values : (json_decode($audit->old_values ?? '[]', true) ?: []);
+        $new = is_array($audit->new_values) ? $audit->new_values : (json_decode($audit->new_values ?? '[]', true) ?: []);
+        $keys = collect(array_unique(array_merge(array_keys($old), array_keys($new))))->sort()->values();
+
+        $diff = [];
+        foreach ($keys as $k) {
+            $ov = $old[$k] ?? null;
+            $nv = $new[$k] ?? null;
+            
+            $diff[$k] = [
+                'old' => is_scalar($ov) || $ov === null ? var_export($ov, true) : json_encode($ov, JSON_PRETTY_PRINT),
+                'new' => is_scalar($nv) || $nv === null ? var_export($nv, true) : json_encode($nv, JSON_PRETTY_PRINT),
+            ];
+        }
+
+        return response()->json([
+            'id' => $audit->id,
+            'event' => strtoupper($audit->event),
+            'user_name' => optional($audit->user)->name,
+            'formatted_date' => $audit->created_at?->toDayDateTimeString(),
+            'ip_address' => $audit->ip_address,
+            'url' => $audit->url,
+            'user_agent' => $audit->user_agent,
+            'diff' => $diff
         ]);
     }
 

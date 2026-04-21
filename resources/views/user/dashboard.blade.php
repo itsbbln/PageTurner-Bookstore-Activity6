@@ -11,7 +11,7 @@
 @section('content')
     {{-- Stats Cards (same layout as admin) --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6">
             <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Orders</h2>
             <p class="mt-3 text-3xl font-bold text-matcha-900">{{ $totalOrders }}</p>
         </div>
@@ -50,7 +50,7 @@
     </div>
 
     {{-- Order Status Summary --}}
-    <div class="bg-white rounded-lg shadow p-6 mb-8">
+    <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 mb-8">
         <h2 class="text-xl font-bold mb-4">Order Status Summary</h2>
         <div class="flex flex-wrap gap-4">
             <span class="px-4 py-2 rounded bg-amber-100 text-amber-800 font-medium">Pending: {{ $orderStatusSummary['pending'] ?? 0 }}</span>
@@ -95,7 +95,7 @@
                                     <p class="font-semibold text-gray-900">{{ $book->title }}</p>
                                     <p class="text-sm text-gray-500">{{ $book->author }}</p>
                                 </div>
-                                <a href="{{ route('books.show', $book) }}" class="text-sm text-indigo-600 hover:text-indigo-800">View Book</a>
+                                <a href="{{ route('books.show', $book) }}" class="text-sm text-matcha-800 hover:text-matcha-900 font-semibold">View Book</a>
                             </li>
                         @endif
                     @endforeach

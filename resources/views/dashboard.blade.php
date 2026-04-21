@@ -57,7 +57,7 @@
     </div>
 
     {{-- Order Status Summary (including Processing) --}}
-    <div class="bg-white rounded-lg shadow p-6 mb-8">
+    <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 mb-8">
         <h2 class="text-xl font-bold mb-4">Order Status Summary</h2>
         <div class="flex flex-wrap gap-4">
             <span class="px-4 py-2 rounded bg-amber-100 text-amber-800 font-medium">Pending: {{ $orderStatusSummary['pending'] ?? 0 }}</span>
@@ -117,6 +117,13 @@
             <a href="{{ route('admin.books.create') }}" class="px-4 py-2 rounded bg-matcha-800 text-white hover:bg-matcha-900 transition">Add New Book</a>
             <a href="{{ route('admin.categories.create') }}" class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 transition">Add New Category</a>
             <a href="{{ route('admin.orders.index') }}" class="px-4 py-2 rounded bg-gray-800 text-white hover:bg-gray-900 transition">View All Orders</a>
+            <a href="{{ route('admin.data-management.index') }}" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition">Data Management</a>
+            @if (Route::has('admin.backups.index'))
+                <a href="{{ route('admin.backups.index') }}" class="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 transition">Backup Management</a>
+            @endif
+            @if (Route::has('admin.rate-limiting.index'))
+                <a href="{{ route('admin.rate-limiting.index') }}" class="px-4 py-2 rounded bg-orange-600 text-white hover:bg-orange-700 transition">Rate Limiting</a>
+            @endif
             @if (Route::has('admin.users.index'))
                 <a href="{{ route('admin.users.index') }}" class="px-4 py-2 rounded bg-purple-600 text-white hover:bg-purple-700 transition">User Management</a>
             @endif
